@@ -81,3 +81,7 @@ func NewBlockChain() *BlockChain {
 	}
 	return &BlockChain{tip, db}
 }
+
+func (b *BlockChain) Iterator() *BlockChainIterator {
+	return &BlockChainIterator{b.tip, b.db}
+}
