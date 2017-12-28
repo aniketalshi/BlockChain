@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"time"
 )
@@ -19,6 +20,7 @@ type Block struct {
 // NewBlock is constructor taking in data and prev hash combining them into a new struct.
 func NewBlock(data string, prevBlockHash []byte) *Block {
 
+	fmt.Printf("Mining New Block...\n")
 	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
 
 	pow := NewProofOfWork(block)
@@ -26,6 +28,9 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 
 	block.Hash = hash[:]
 	block.Nonce = nonce
+
+	block.Print()
+	fmt.Println("Success")
 
 	return block
 }
@@ -38,4 +43,9 @@ func (b *Block) Serialize() []byte {
 		log.Fatal("serialize :", err)
 	}
 	return result.Bytes()
+}
+
+// Print is utility function to print block
+func (b *Block) Print() {
+	fmt.Printf("Timestamp : %d, Data : %s, Hash :%x\n", b.Timestamp, string(b.Data[:]), b.Hash)
 }

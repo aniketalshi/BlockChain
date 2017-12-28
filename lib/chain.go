@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -14,6 +15,11 @@ const blocksBucket = "Blocks"
 type BlockChain struct {
 	tip []byte
 	db  *bolt.DB
+}
+
+// Close exports close functionality of db
+func (b *BlockChain) Close() {
+	b.db.Close()
 }
 
 // AddBlock appends the block to end of blockchain
@@ -57,8 +63,9 @@ func NewBlockChain() *BlockChain {
 	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 
-		// if we already have bucket with blocks
+		// if we dont already have bucket with blocks
 		if b == nil {
+			fmt.Println("Creating New Blockchain.")
 			bl := GenerateGenesisBlock()
 
 			bckt, _ := tx.CreateBucket([]byte(blocksBucket))
@@ -82,6 +89,21 @@ func NewBlockChain() *BlockChain {
 	return &BlockChain{tip, db}
 }
 
+// Iterator returns pointer to iterate upon the blockchain
 func (b *BlockChain) Iterator() *BlockChainIterator {
 	return &BlockChainIterator{b.tip, b.db}
+}
+
+// Print is utility to print info of blocks
+func (b *BlockChain) Print() {
+
+	iter := b.Iterator()
+
+	for {
+		b := iter.Next()
+		if b == nil || len(b.PrevBlockHash) == 0 {
+			break
+		}
+		b.Print()
+	}
 }

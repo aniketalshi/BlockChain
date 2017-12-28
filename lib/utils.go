@@ -16,7 +16,7 @@ func IntToHex(num int64) []byte {
 func DeserializeBlock(b []byte) *Block {
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(b))
-	if err := decoder.Decode(block); err != nil {
+	if err := decoder.Decode(&block); err != nil {
 		log.Fatal("DeserializeBlock :", err)
 	}
 	return &block
