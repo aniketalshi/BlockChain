@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"time"
@@ -52,8 +53,6 @@ func NewGenesisBlock(tx *Transaction) *Block {
 
 //NewBlockChain constructs a new block chain
 func NewBlockChain(address string) *BlockChain {
-	//return &BlockChain{[]*Block{GenerateGenesisBlock()}}
-
 	var tip []byte
 
 	db, err := bolt.Open(dbFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -94,6 +93,55 @@ func NewBlockChain(address string) *BlockChain {
 // GetIterator returns pointer to iterate upon the blockchain
 func (b *BlockChain) GetIterator() *Iterator {
 	return &Iterator{b.tip, b.db}
+}
+
+// GetUnspentOutputs gets unspent outputs
+func (b *BlockChain) GetUnspentOutputs(address string) []TxOutput {
+	var unspentOut []TxOutput
+	var unspentOutputs = make(map[string]bool) // set of all unspent output
+
+	// go over blocks one by one
+	iter := b.GetIterator()
+	for {
+		blck := iter.Next()
+		// go over all Transactions in this block
+		for _, txn := range blck.Transactions {
+			// get string identifying this transaction
+			txID := hex.EncodeToString(txn.ID)
+
+			// go over all outputs in this Txn
+			for outIndex, output := range txn.Out {
+				// check if this output is spent.
+				uniqueOutputID := txID + string(outIndex)
+				if unspentOutputs[uniqueOutputID] == true {
+					continue
+				}
+
+				// check if this output belongs to this address
+				if output.CheckOutputUnlock(address) {
+					unspentOut = append(unspentOut, output)
+				}
+
+				// if this is not genesis block, go over all inputs
+				// that refers to output that belongs to this address
+				// and mark them as unspent
+				if txn.IsCoinbase() == false {
+					for _, inp := range txn.In {
+						if inp.CheckInputUnlock(address) {
+							key := hex.EncodeToString(inp.ID) + string(inp.Out)
+							unspentOutputs[key] = true
+						}
+					}
+				}
+			}
+		}
+
+		if len(blck.PrevBlockHash) == 0 {
+			break
+		}
+	}
+
+	return unspentOut
 }
 
 // Print is utility to print info of blocks

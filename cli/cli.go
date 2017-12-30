@@ -17,13 +17,29 @@ func NewCli(bc *blockchain.BlockChain) *Cli {
 	return &Cli{bc}
 }
 
+// GetBalance calculates balance amt of all unspent outputs for address
+func (cli *Cli) GetBalance(address string) {
+	bc := blockchain.NewBlockChain(address)
+	defer bc.Close()
+	var balance int64
+
+	txOut := bc.GetUnspentOutputs(address)
+	for _, output := range txOut {
+		balance += output.Value
+	}
+
+	fmt.Printf("The Balance of %s is %v", address, balance)
+}
+
 // Run starts cmd line interface and parses args
 func (cli *Cli) Run() {
 	// define two cli input modes
 	addCmdSet := flag.NewFlagSet("add", flag.ExitOnError)
 	printCmdSet := flag.NewFlagSet("print", flag.ExitOnError)
+	getbalanceCmdSet := flag.NewFlagSet("getbalance", flag.ExitOnError)
 
 	addCmd := addCmdSet.String("addblock", "", "Text describing transaction.")
+	getbalanceCmd := getbalanceCmdSet.String("address", "", "Get the balance of address.")
 
 	if len(os.Args) < 2 {
 		fmt.Println("add or print subcommand required.")
@@ -35,6 +51,8 @@ func (cli *Cli) Run() {
 		addCmdSet.Parse(os.Args[2:])
 	case "print":
 		printCmdSet.Parse(os.Args[2:])
+	case "getbalance":
+		getbalanceCmdSet.Parse(os.Args[2:])
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -51,5 +69,14 @@ func (cli *Cli) Run() {
 
 	if printCmdSet.Parsed() {
 		cli.bc.Print()
+	}
+
+	if getbalanceCmdSet.Parsed() {
+		if *getbalanceCmd == "" {
+			getbalanceCmdSet.PrintDefaults()
+			os.Exit(1)
+		}
+
+		cli.GetBalance(*getbalanceCmd)
 	}
 }

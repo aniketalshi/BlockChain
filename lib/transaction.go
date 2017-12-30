@@ -18,15 +18,25 @@ type Transaction struct {
 
 // TxInput struct defines input of given txn
 type TxInput struct {
-	ID        []byte // id of Transaction
+	ID        []byte // id of output Transaction
 	Out       int    // index of output in Transaction
-	ScriptSig string // used for unlocking input's ScriptPubKey
+	ScriptSig string // used for unlocking output's ScriptPubKey
 }
 
 // TxOutput defines output of given txn
 type TxOutput struct {
 	Value        int64  // value for mining
 	ScriptPubKey string // key for unlocking this output
+}
+
+// CheckInputUnlock verifies if input can unlock given ScriptPubKey
+func (txIn *TxInput) CheckInputUnlock(key string) bool {
+	return txIn.ScriptSig == key
+}
+
+// CheckOutputUnlock verifies if output can be unlocked with given key
+func (txOup *TxOutput) CheckOutputUnlock(key string) bool {
+	return txOup.ScriptPubKey == key
 }
 
 // Serialize encodes Transaction into bytes
@@ -53,4 +63,17 @@ func NewCoinBase(to, data string) *Transaction {
 	tx := Transaction{nil, []TxInput{inp}, []TxOutput{oup}}
 	tx.SetID()
 	return &tx
+}
+
+// IsCoinbase verifies if this is first Txn
+func (t *Transaction) IsCoinbase() bool {
+	if len(t.In) != 1 {
+		return false
+	}
+
+	txn := t.In[0]
+	if txn.Out == -1 && txn.ScriptSig == genesisCoinBaseData {
+		return true
+	}
+	return false
 }
