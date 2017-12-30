@@ -1,6 +1,7 @@
-package blockchain
+package cli
 
 import (
+	"blockchain/lib"
 	"flag"
 	"fmt"
 	"os"
@@ -8,11 +9,11 @@ import (
 
 // Cli is used for handling cmd line interface to program
 type Cli struct {
-	bc *BlockChain
+	bc *blockchain.BlockChain
 }
 
 // NewCli constructs handler for managing cmd line interface
-func NewCli(bc *BlockChain) *Cli {
+func NewCli(bc *blockchain.BlockChain) *Cli {
 	return &Cli{bc}
 }
 
@@ -22,7 +23,7 @@ func (cli *Cli) Run() {
 	addCmdSet := flag.NewFlagSet("add", flag.ExitOnError)
 	printCmdSet := flag.NewFlagSet("print", flag.ExitOnError)
 
-	addCmd := addCmdSet.String("addblock", "", "Text describing transaction")
+	addCmd := addCmdSet.String("addblock", "", "Text describing transaction.")
 
 	if len(os.Args) < 2 {
 		fmt.Println("add or print subcommand required.")
@@ -45,7 +46,7 @@ func (cli *Cli) Run() {
 			addCmdSet.PrintDefaults()
 			os.Exit(1)
 		}
-		cli.bc.AddBlock(*addCmd)
+		//cli.bc.AddBlock(*addCmd)
 	}
 
 	if printCmdSet.Parsed() {

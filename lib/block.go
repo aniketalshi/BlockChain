@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -11,17 +12,17 @@ import (
 // Block represents single block of data in chain storing hashesh
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int
 }
 
 // NewBlock is constructor taking in data and prev hash combining them into a new struct.
-func NewBlock(data string, prevBlockHash []byte) *Block {
+func NewBlock(txs []*Transaction, prevBlockHash []byte) *Block {
 
 	fmt.Printf("Mining New Block...\n")
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+	block := &Block{time.Now().Unix(), txs, prevBlockHash, []byte{}, 0}
 
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
@@ -47,5 +48,19 @@ func (b *Block) Serialize() []byte {
 
 // Print is utility function to print block
 func (b *Block) Print() {
-	fmt.Printf("Timestamp : %d, Data : %s, Hash :%x\n", b.Timestamp, string(b.Data[:]), b.Hash)
+	fmt.Printf("Timestamp : %d, Hash :%x\n", b.Timestamp, b.Hash)
+}
+
+// HashTransactions concatenates all hashes of txn and creates unique hash to identify them
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
+
 }

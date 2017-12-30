@@ -1,13 +1,14 @@
 package main
 
 import (
+	"blockchain/cli"
 	"blockchain/lib"
 )
 
 func main() {
-	bc := blockchain.NewBlockChain()
+	bc := blockchain.NewBlockChain("Aniket")
 	defer bc.Close()
 
-	cli := blockchain.NewCli(bc)
-	cli.Run()
+	cmd := cli.NewCli(bc)
+	cmd.Run()
 }

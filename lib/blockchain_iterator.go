@@ -1,17 +1,19 @@
 package blockchain
 
 import (
-	"github.com/boltdb/bolt"
 	"log"
+
+	"github.com/boltdb/bolt"
 )
 
-// BlockChainIterator represents iterator for getting next block by time
-type BlockChainIterator struct {
+// Iterator represents iterator for getting next block by time
+type Iterator struct {
 	currentHash []byte
 	db          *bolt.DB
 }
 
-func (bci *BlockChainIterator) Next() *Block {
+// Next gives us next block in the chain
+func (bci *Iterator) Next() *Block {
 
 	var block *Block
 	err := bci.db.View(func(tx *bolt.Tx) error {
