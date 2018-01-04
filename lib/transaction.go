@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
+	"fmt"
 	"log"
 )
 
@@ -62,6 +64,8 @@ func NewCoinBase(to, data string) *Transaction {
 
 	tx := Transaction{nil, []TxInput{inp}, []TxOutput{oup}}
 	tx.SetID()
+
+	fmt.Printf("The coinbase has been set to %s\n", to)
 	return &tx
 }
 
@@ -76,4 +80,39 @@ func (t *Transaction) IsCoinbase() bool {
 		return true
 	}
 	return false
+}
+
+// NewUserTransaction creates new transaction sending coins from - to
+func NewUserTransaction(from, to string, amount int, bc *BlockChain) *Transaction {
+	var inputs []TxInput
+	var outputs []TxOutput
+
+	// find all outputs we can spend
+	validAmt, validOutputs := bc.FindSpendableOutputs(from, amount)
+	if validAmt < amount {
+		log.Panic("Address : ", from, " amount requested :", amount, " balance in acc : ", validAmt)
+	}
+
+	// go over the map of txnId and outputs
+	for txID, outputs := range validOutputs {
+		id, _ := hex.DecodeString(txID)
+
+		// go over all the outputs in this txnID and construct inputs for our txn
+		for _, out := range outputs {
+			inputs = append(inputs, TxInput{id, out, from})
+		}
+	}
+
+	// build a list of outpus
+	outputs = append(outputs, TxOutput{int64(amount), to})
+
+	// give change back to owner
+	if validAmt > amount {
+		outputs = append(outputs, TxOutput{int64(validAmt - amount), from})
+	}
+
+	finalTxn := Transaction{nil, inputs, outputs}
+	finalTxn.SetID()
+
+	return &finalTxn
 }

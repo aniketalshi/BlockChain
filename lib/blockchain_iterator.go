@@ -27,6 +27,7 @@ func (bci *Iterator) Next() *Block {
 	if err != nil {
 		log.Fatal("BlockChainIterator Next:", err)
 	}
+
 	bci.currentHash = block.PrevBlockHash
 	return block
 }
