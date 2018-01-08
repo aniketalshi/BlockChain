@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // Cli is used for handling cmd line interface to program
@@ -32,11 +33,14 @@ func (cli *Cli) GetBalance(address string) {
 // Run starts cmd line interface and parses args
 func (cli *Cli) Run() {
 	// define two cli input modes
-	//addCmdSet := flag.NewFlagSet("add", flag.ExitOnError)
+	sendCmdSet := flag.NewFlagSet("send", flag.ExitOnError)
 	printCmdSet := flag.NewFlagSet("print", flag.ExitOnError)
 	getbalanceCmdSet := flag.NewFlagSet("getbalance", flag.ExitOnError)
 
-	//addCmd := addCmdSet.String("addblock", "", "Text describing transaction.")
+	sendFrom := sendCmdSet.String("from", "", "Sender of coins.")
+	sendTo := sendCmdSet.String("to", "", "Receiver of coins.")
+	sendAmt := sendCmdSet.String("amount", "", "Amount to send.")
+
 	getbalanceCmd := getbalanceCmdSet.String("address", "", "Get the balance of address.")
 
 	if len(os.Args) < 2 {
@@ -45,8 +49,8 @@ func (cli *Cli) Run() {
 	}
 
 	switch os.Args[1] {
-	//case "add":
-	//	addCmdSet.Parse(os.Args[2:])
+	case "send":
+		sendCmdSet.Parse(os.Args[2:])
 	case "print":
 		printCmdSet.Parse(os.Args[2:])
 	case "getbalance":
@@ -56,14 +60,16 @@ func (cli *Cli) Run() {
 		os.Exit(1)
 	}
 
-	//if addCmdSet.Parsed() {
-	//	// sanity check
-	//	if *addCmd == "" {
-	//		addCmdSet.PrintDefaults()
-	//		os.Exit(1)
-	//	}
-	//	cli.bc.AddBlock(*addCmd)
-	//}
+	if sendCmdSet.Parsed() {
+		if *sendFrom == "" || *sendTo == "" || *sendAmt == "" {
+			sendCmdSet.PrintDefaults()
+			os.Exit(1)
+		}
+
+		amt, _ := strconv.ParseInt(*sendAmt, 10, 64)
+		cli.Send(*sendFrom, *sendTo, int(amt))
+
+	}
 
 	if printCmdSet.Parsed() {
 		cli.bc.Print()
@@ -79,7 +85,7 @@ func (cli *Cli) Run() {
 	}
 }
 
-func (cli *Cli) send(from, to string, amount int) {
+func (cli *Cli) Send(from, to string, amount int) {
 
 	txn := blockchain.NewUserTransaction(from, to, amount, cli.bc)
 	cli.bc.MineBlock([]*blockchain.Transaction{txn})
