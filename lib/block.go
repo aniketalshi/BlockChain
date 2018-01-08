@@ -48,7 +48,20 @@ func (b *Block) Serialize() []byte {
 
 // Print is utility function to print block
 func (b *Block) Print() {
-	fmt.Printf("Timestamp : %d, Hash :%x\n", b.Timestamp, b.Hash)
+
+	fmt.Printf("\n\nNew Block :: Timestamp : %d, Hash :%x\n", b.Timestamp, b.Hash)
+	
+	fmt.Println("--- Printing all transactions ---");
+	for _, txn := range b.Transactions {
+				
+		for _, inTxn := range txn.In {
+			inTxn.Print()
+		}
+
+		for _, outTxn := range txn.Out {
+			outTxn.Print()
+		}
+	}
 }
 
 // HashTransactions concatenates all hashes of txn and creates unique hash to identify them

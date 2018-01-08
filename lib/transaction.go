@@ -116,3 +116,12 @@ func NewUserTransaction(from, to string, amount int, bc *BlockChain) *Transactio
 
 	return &finalTxn
 }
+
+func (inTxn *TxInput) Print() {
+	fmt.Printf("INPUT TXN ::\n ID : %x From : %s\n", inTxn.ID, inTxn.ScriptSig)
+}
+
+func (outTxn *TxOutput) Print() {
+	fmt.Printf("OUTPUT TXN ::\n Value : %d TO : %s\n", outTxn.Value, outTxn.ScriptPubKey)
+}
+
