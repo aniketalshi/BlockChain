@@ -44,7 +44,7 @@ func (w Wallet) GenerateAddress() []byte {
 	checkSum := GenerateChecksum(payload)
 	address := append(payload, checkSum...)
 
-	//address = Base58Encode(address)
+	address = Base58Encode(address)
 
 	return address
 }
@@ -66,5 +66,4 @@ func HashPubKey(pubKey []byte) []byte {
 	publicHashKey := RIPEMD160Hasher.Sum(nil)
 
 	return publicHashKey
-
 }

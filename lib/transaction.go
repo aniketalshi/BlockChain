@@ -22,18 +22,26 @@ type Transaction struct {
 type TxInput struct {
 	ID        []byte // id of output Transaction
 	Out       int    // index of output in Transaction
-	ScriptSig string // used for unlocking output's ScriptPubKey
+	Signature []byte
+	PublicKey []byte
 }
 
 // TxOutput defines output of given txn
 type TxOutput struct {
-	Value        int64  // value for mining
-	ScriptPubKey string // key for unlocking this output
+	Value         int64 // value for mining
+	PublicHashKey []byte
 }
 
 // CheckInputUnlock verifies if input can unlock given ScriptPubKey
-func (txIn *TxInput) CheckInputUnlock(key string) bool {
-	return txIn.ScriptSig == key
+func (txIn *TxInput) CheckInputUnlock(key []byte) bool {
+	pubKeyHash := HashPubKey(txIn.PublicKey)
+	return bytes.Compare(pubKeyHash, key) == 0
+}
+
+func (txOup *TxOutput) Lock(address []byte) {
+	pubHash := Base58Decode(address)
+	pubHash = pubHash[1 : len(pubHash)-4]
+	txOup.PublicHashKey = pubHash
 }
 
 // CheckOutputUnlock verifies if output can be unlocked with given key
@@ -124,4 +132,3 @@ func (inTxn *TxInput) Print() {
 func (outTxn *TxOutput) Print() {
 	fmt.Printf("OUTPUT TXN ::\n Value : %d TO : %s\n", outTxn.Value, outTxn.ScriptPubKey)
 }
-
